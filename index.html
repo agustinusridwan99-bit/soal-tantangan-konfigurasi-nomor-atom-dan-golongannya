@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Konfigurasi Elektron Atom Bohr - Media Pembelajaran</title>
+  <!-- WebGL: Three.js untuk visualisasi atom (opsional, digunakan di header) -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.128.0/build/three.module.js"
+      }
+    }
+  </script>
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+    }
+    body {
+      background: #f0f7fa;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 12px;
+    }
+    .app-container {
+      max-width: 480px;
+      width: 100%;
+      background: white;
+      border-radius: 32px;
+      box-shadow: 0 20px 40px rgba(0, 40, 60, 0.15);
+      overflow: hidden;
+      padding: 20px 16px 24px;
+      border: 1px solid #cde3ed;
+    }
+    /* Header dengan WebGL canvas */
+    .header-webgl {
+      width: 100%;
+      height: 140px;
+      background: linear-gradient(145deg, #e3f2f9, #c8e4f0);
+      border-radius: 24px;
+      margin-bottom: 20px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    #canvas-container {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+    .header-title {
+      position: absolute;
+      bottom: 8px;
+      left: 0;
+      right: 0;
+      text-align: center;
+      font-weight: 600;
+      font-size: 1rem;
+      color: #0a3e4f;
+      background: rgba(255,255,255,0.7);
+      padding: 6px;
+      backdrop-filter: blur(4px);
+      border-radius: 20px;
+      margin: 0 16px;
+      pointer-events: none;
+    }
+    h2, h3 {
+      color: #0a3e4f;
+      margin-bottom: 12px;
+      font-weight: 600;
+    }
+    .tombol-group {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 24px;
+    }
+    .btn-utama {
+      flex: 1;
+      background: #d9eef9;
+      border: none;
+      border-radius: 40px;
+      padding: 14px 0;
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #0a3e4f;
+      cursor: pointer;
+      transition: all 0.2s;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.02);
+      border: 1px solid #b3d6e8;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .btn-utama.active {
+      background: #0a7e9c;
+      color: white;
+      border-color: #0a7e9c;
+      box-shadow: 0 8px 16px rgba(10,126,156,0.3);
+    }
+    .btn-utama i {
+      font-style: normal;
+      font-size: 1.1rem;
+    }
+    .panel {
+      background: #f9fcfe;
+      border-radius: 24px;
+      padding: 18px 14px;
+      border: 1px solid #cde3ed;
+      max-height: 420px;
+      overflow-y: auto;
+      scrollbar-width: thin;
+    }
+    .panel::-webkit-scrollbar {
+      width: 4px;
+    }
+    .panel::-webkit-scrollbar-thumb {
+      background: #aacfdf;
+      border-radius: 20px;
+    }
+    /* Kartu materi */
+    .materi-item {
+      background: white;
+      border-radius: 16px;
+      padding: 12px 14px;
+      margin-bottom: 12px;
+      border-left: 6px solid #0a7e9c;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.02);
+      font-size: 0.9rem;
+      color: #1e3b45;
+      line-height: 1.5;
+    }
+    .materi-item strong {
+      color: #0a7e9c;
+    }
+    .rumus {
+      background: #e5f3fa;
+      padding: 6px 10px;
+      border-radius: 12px;
+      font-family: monospace;
+      font-size: 1.1rem;
+      text-align: center;
+      margin: 8px 0;
+      font-weight: 600;
+      color: #0a3e4f;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.85rem;
+      margin: 10px 0;
+    }
+    th, td {
+      padding: 8px 4px;
+      text-align: center;
+      border-bottom: 1px solid #d4e9f2;
+    }
+    th {
+      background: #e1f0f7;
+      color: #0a3e4f;
+      font-weight: 600;
+    }
+    .contoh-box {
+      background: #eef7fc;
+      border-radius: 14px;
+      padding: 10px 12px;
+      margin-top: 10px;
+      font-size: 0.9rem;
+    }
+    /* Petunjuk bermain */
+    .petunjuk-step {
+      display: flex;
+      gap: 12px;
+      margin-bottom: 16px;
+      align-items: flex-start;
+    }
+    .step-number {
+      background: #0a7e9c;
+      color: white;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      flex-shrink: 0;
+    }
+    .step-text {
+      font-size: 0.9rem;
+      color: #1e3b45;
+      line-height: 1.4;
+    }
+    /* Soal tantangan */
+    .soal-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .input-group label {
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: #0a3e4f;
+    }
+    .input-group input {
+      padding: 12px 14px;
+      border-radius: 16px;
+      border: 1px solid #b8d7e7;
+      font-size: 1rem;
+      background: white;
+      outline: none;
+      transition: 0.2s;
+    }
+    .input-group input:focus {
+      border-color: #0a7e9c;
+      box-shadow: 0 0 0 3px rgba(10,126,156,0.15);
+    }
+    .btn-aksi {
+      background: #0a7e9c;
+      color: white;
+      border: none;
+      border-radius: 40px;
+      padding: 14px;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.2s;
+      margin-top: 6px;
+    }
+    .btn-aksi:active {
+      transform: scale(0.98);
+    }
+    .btn-aksi.secondary {
+      background: #e1f0f7;
+      color: #0a3e4f;
+      border: 1px solid #b8d7e7;
+    }
+    .feedback-box {
+      background: #eef7fc;
+      border-radius: 18px;
+      padding: 16px;
+      font-size: 0.95rem;
+      margin-top: 8px;
+      border-left: 6px solid #0a7e9c;
+      color: #1e3b45;
+      line-height: 1.6;
+    }
+    .feedback-benar {
+      color: #0b6e4f;
+      font-weight: 600;
+    }
+    .feedback-salah {
+      color: #b13e3e;
+      font-weight: 600;
+    }
+    .hidden {
+      display: none !important;
+    }
+    .flex-row {
+      display: flex;
+      gap: 10px;
+    }
+    .flex-row .btn-aksi {
+      flex: 1;
+    }
+  </style>
+</head>
+<body>
+<div class="app-container">
+  <!-- WebGL header -->
+  <div class="header-webgl">
+    <canvas id="canvas-container"></canvas>
+    <div class="header-title">⚛️ Atom Bohr</div>
+  </div>
+
+  <!-- Tombol Navigasi -->
+  <div class="tombol-group">
+    <button class="btn-utama active" id="btnMateri"><i>📘</i> Materi</button>
+    <button class="btn-utama" id="btnPetunjuk"><i>🎮</i> Petunjuk</button>
+    <button class="btn-utama" id="btnSoal"><i>🧪</i> Tantangan</button>
+  </div>
+
+  <!-- Panel Materi -->
+  <div id="panelMateri" class="panel">
+    <h3>📖 Konfigurasi Elektron Atom Bohr</h3>
+    <div class="materi-item">
+      <strong>Model Atom Bohr</strong><br>
+      Elektron berada pada lintasan (kulit) tertentu: K, L, M, N, ... dihitung dari inti.
+    </div>
+    <div class="materi-item">
+      <strong>Kapasitas Maksimum Kulit</strong>
+      <div class="rumus">Σ maks = 2n²</div>
+      <table>
+        <tr><th>Kulit (n)</th><th>Lambang</th><th>Maks e⁻</th></tr>
+        <tr><td>1</td><td>K</td><td>2</td></tr>
+        <tr><td>2</td><td>L</td><td>8</td></tr>
+        <tr><td>3</td><td>M</td><td>18</td></tr>
+        <tr><td>4</td><td>N</td><td>32</td></tr>
+      </table>
+    </div>
+    <div class="materi-item">
+      <strong>Aturan Pengisian Kulit K & L</strong><br>
+      • Kulit K: diisi 2 e⁻ (kecuali H hanya 1).<br>
+      • Kulit L: diisi 8 e⁻ jika tersedia ≥8; jika <8 diisi sisa.
+      <div class="contoh-box">
+        Contoh: <sub>3</sub>Li → 2,1  |  <sub>12</sub>Mg → 2,8,2
+      </div>
+    </div>
+    <div class="materi-item">
+      <strong>Aturan Kulit M & N</strong><br>
+      • Kulit M: 18 e⁻ jika >18; 8 e⁻ jika 8≤e⁻<18; sisa jika <8.<br>
+      • Kulit N: 32 e⁻ jika >32; 18 e⁻ jika 18≤e⁻<32; 8 e⁻ jika 8≤e⁻<18; sisa jika <8.
+      <div class="contoh-box">
+        <sub>36</sub>Kr: 2,8,18,8  |  <sub>20</sub>Ca: 2,8,8,2  |  <sub>17</sub>Cl: 2,8,7
+      </div>
+    </div>
+    <div class="materi-item">
+      <strong>Empat Hal Wajib Diingat</strong><br>
+      1. Kulit K, L, M, N... dari inti keluar.<br>
+      2. Kulit K maks 2 (H hanya 1); L maks 8.<br>
+      3. Kulit M maks 18, N maks 32.<br>
+      4. Ikuti aturan sisa elektron terluar.
+    </div>
+  </div>
+
+  <!-- Panel Petunjuk -->
+  <div id="panelPetunjuk" class="panel hidden">
+    <h3>🎯 Petunjuk Bermain</h3>
+    <div class="petunjuk-step">
+      <div class="step-number">1</div>
+      <div class="step-text">Isi <strong>jumlah kulit</strong> (contoh: 3 untuk K, L, M) dan <strong>elektron valensi</strong> (elektron di kulit terluar) pada kolom yang tersedia.</div>
+    </div>
+    <div class="petunjuk-step">
+      <div class="step-number">2</div>
+      <div class="step-text">Tekan tombol <strong>“Proses Konfigurasi”</strong> untuk melihat hasil konfigurasi elektron, nomor atom, dan golongan.</div>
+    </div>
+    <div class="petunjuk-step">
+      <div class="step-number">3</div>
+      <div class="step-text">Setelah itu, kamu akan diminta menebak <strong>konfigurasi, nomor atom, dan golongan</strong> dari data yang diberikan. Tulis jawabanmu di kolom yang muncul.</div>
+    </div>
+    <div class="petunjuk-step">
+      <div class="step-number">4</div>
+      <div class="step-text">Tekan <strong>“Periksa Jawaban”</strong> untuk mendapatkan umpan balik. Jawaban benar akan ditandai hijau, salah merah.</div>
+    </div>
+    <div class="petunjuk-step">
+      <div class="step-number">5</div>
+      <div class="step-text">Skor dan riwayat jawabanmu tersimpan otomatis di perangkat. Gunakan tombol <strong>“Reset”</strong> untuk memulai lagi.</div>
+    </div>
+    <div class="contoh-box" style="margin-top:16px;">
+      <strong>Contoh:</strong> Jika kamu masukkan jumlah kulit = 3 dan elektron valensi = 2, maka atom tersebut memiliki konfigurasi 2,8,2 → Nomor atom = 12 → Golongan IIA (logam alkali tanah).
+    </div>
+  </div>
+
+  <!-- Panel Soal Tantangan -->
+  <div id="panelSoal" class="panel hidden">
+    <h3>🧪 Tantangan Konfigurasi</h3>
+    <div class="soal-container">
+      <div class="input-group">
+        <label>Jumlah Kulit (K, L, M, ...)</label>
+        <input type="number" id="inputKulit" min="1" max="7" value="3" placeholder="contoh: 3">
+      </div>
+      <div class="input-group">
+        <label>Elektron Valensi (elektron di kulit terluar)</label>
+        <input type="number" id="inputValensi" min="1" max="8" value="2" placeholder="contoh: 2">
+      </div>
+      <button class="btn-aksi" id="btnGenerate">⚡ Proses Konfigurasi</button>
+      
+      <!-- Area jawaban siswa -->
+      <div id="areaJawaban" class="hidden">
+        <hr style="border:1px dashed #cde3ed; margin:16px 0;">
+        <p style="font-size:0.9rem; font-weight:600; margin-bottom:10px;">Jawab pertanyaan berikut:</p>
+        <div class="input-group">
+          <label>Konfigurasi Elektron (contoh: 2,8,2)</label>
+          <input type="text" id="jawabKonfig" placeholder="tulis konfigurasi">
+        </div>
+        <div class="input-group">
+          <label>Nomor Atom</label>
+          <input type="number" id="jawabNomor" placeholder="nomor atom">
+        </div>
+        <div class="input-group">
+          <label>Golongan (contoh: IIA, VIIIA, IA)</label>
+          <input type="text" id="jawabGolongan" placeholder="golongan">
+        </div>
+        <div class="flex-row">
+          <button class="btn-aksi" id="btnPeriksa">✅ Periksa Jawaban</button>
+          <button class="btn-aksi secondary" id="btnReset">🔄 Reset</button>
+        </div>
+        <div id="feedback" class="feedback-box hidden"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  // ========== WEBGL DENGAN THREE.JS (visualisasi atom sederhana) ==========
+  import * as THREE from 'three';
+
+  const canvasContainer = document.getElementById('canvas-container');
+  const scene = new THREE.Scene();
+  scene.background = new THREE.Color(0xe3f2f9); // sesuai background header
+
+  const camera = new THREE.PerspectiveCamera(45, canvasContainer.clientWidth / canvasContainer.clientHeight, 0.1, 1000);
+  camera.position.set(0, 1.5, 4);
+  camera.lookAt(0, 0, 0);
+
+  const renderer = new THREE.WebGLRenderer({ canvas: canvasContainer, alpha: false, antialias: true });
+  renderer.setSize(canvasContainer.clientWidth, canvasContainer.clientHeight);
+  renderer.setPixelRatio(window.devicePixelRatio);
+
+  // Inti atom
+  const nucleusGeo = new THREE.SphereGeometry(0.6, 32, 16);
+  const nucleusMat = new THREE.MeshStandardMaterial({ color: 0xff7b4b, emissive: 0x552200 });
+  const nucleus = new THREE.Mesh(nucleusGeo, nucleusMat);
+  scene.add(nucleus);
+
+  // Kulit K
+  const shellKGeo = new THREE.TorusGeometry(1.1, 0.03, 16, 64);
+  const shellKMat = new THREE.MeshStandardMaterial({ color: 0x0a7e9c });
+  const shellK = new THREE.Mesh(shellKGeo, shellKMat);
+  shellK.rotation.x = Math.PI / 2;
+  scene.add(shellK);
+
+  // Kulit L
+  const shellLGeo = new THREE.TorusGeometry(1.6, 0.03, 16, 64);
+  const shellLMat = new THREE.MeshStandardMaterial({ color: 0x0a7e9c, transparent: true, opacity: 0.6 });
+  const shellL = new THREE.Mesh(shellLGeo, shellLMat);
+  shellL.rotation.x = Math.PI / 2;
+  shellL.rotation.z = 0.3;
+  scene.add(shellL);
+
+  // Elektron (titik-titik)
+  const electronMat = new THREE.MeshStandardMaterial({ color: 0xffaa33, emissive: 0x442200 });
+  const electronGeo = new THREE.SphereGeometry(0.08, 8, 8);
+  
+  // Elektron di kulit K
+  for (let i = 0; i < 2; i++) {
+    const angle = (i / 2) * Math.PI * 2;
+    const e = new THREE.Mesh(electronGeo, electronMat);
+    e.position.set(Math.cos(angle) * 1.1, Math.sin(angle) * 0.1, Math.sin(angle) * 1.1);
+    scene.add(e);
+  }
+  // Elektron di kulit L
+  for (let i = 0; i < 6; i++) {
+    const angle = (i / 6) * Math.PI * 2;
+    const e = new THREE.Mesh(electronGeo, electronMat);
+    e.position.set(Math.cos(angle) * 1.6, Math.sin(angle) * 0.2, Math.sin(angle) * 1.6);
+    scene.add(e);
+  }
+
+  // Cahaya
+  const light1 = new THREE.PointLight(0xffffff, 1);
+  light1.position.set(2, 3, 4);
+  scene.add(light1);
+  const light2 = new THREE.PointLight(0x88ccff, 0.8);
+  light2.position.set(-2, 1, 3);
+  scene.add(light2);
+  const ambient = new THREE.AmbientLight(0x404060);
+  scene.add(ambient);
+
+  // Animasi
+  function animate() {
+    requestAnimationFrame(animate);
+    // Rotasi lambat
+    shellK.rotation.y += 0.002;
+    shellL.rotation.y += 0.001;
+    nucleus.rotation.y += 0.001;
+    renderer.render(scene, camera);
+  }
+  animate();
+
+  // Handle resize
+  window.addEventListener('resize', () => {
+    const w = canvasContainer.clientWidth;
+    const h = canvasContainer.clientHeight;
+    renderer.setSize(w, h);
+    camera.aspect = w / h;
+    camera.updateProjectionMatrix();
+  });
+
+  // ========== NAVIGASI TOMBOL ==========
+  const btnMateri = document.getElementById('btnMateri');
+  const btnPetunjuk = document.getElementById('btnPetunjuk');
+  const btnSoal = document.getElementById('btnSoal');
+  const panelMateri = document.getElementById('panelMateri');
+  const panelPetunjuk = document.getElementById('panelPetunjuk');
+  const panelSoal = document.getElementById('panelSoal');
+
+  function setActiveButton(activeBtn) {
+    [btnMateri, btnPetunjuk, btnSoal].forEach(b => b.classList.remove('active'));
+    activeBtn.classList.add('active');
+  }
+
+  btnMateri.addEventListener('click', () => {
+    setActiveButton(btnMateri);
+    panelMateri.classList.remove('hidden');
+    panelPetunjuk.classList.add('hidden');
+    panelSoal.classList.add('hidden');
+  });
+
+  btnPetunjuk.addEventListener('click', () => {
+    setActiveButton(btnPetunjuk);
+    panelMateri.classList.add('hidden');
+    panelPetunjuk.classList.remove('hidden');
+    panelSoal.classList.add('hidden');
+  });
+
+  btnSoal.addEventListener('click', () => {
+    setActiveButton(btnSoal);
+    panelMateri.classList.add('hidden');
+    panelPetunjuk.classList.add('hidden');
+    panelSoal.classList.remove('hidden');
+  });
+
+  // ========== LOGIKA SOAL TANTANGAN ==========
+  const inputKulit = document.getElementById('inputKulit');
+  const inputValensi = document.getElementById('inputValensi');
+  const btnGenerate = document.getElementById('btnGenerate');
+  const areaJawaban = document.getElementById('areaJawaban');
+  const jawabKonfig = document.getElementById('jawabKonfig');
+  const jawabNomor = document.getElementById('jawabNomor');
+  const jawabGolongan = document.getElementById('jawabGolongan');
+  const btnPeriksa = document.getElementById('btnPeriksa');
+  const btnReset = document.getElementById('btnReset');
+  const feedback = document.getElementById('feedback');
+
+  // Data soal yang di-generate
+  let soalData = {
+    konfigurasi: '',
+    nomorAtom: 0,
+    golongan: '',
+    kulit: 0,
+    valensi: 0
+  };
+
+  // Fungsi menghitung konfigurasi dari jumlah kulit & valensi
+  function hitungKonfigurasi(kulit, valensi) {
+    // Kita asumsikan atom netral dan konfigurasi mengikuti aturan Bohr
+    // Kita perlu mengisi elektron dari kulit K sampai terluar = valensi.
+    // Pendekatan: total elektron = 2 + 8 + 18 + ... sampai kulit terakhir = valensi
+    // Tapi kita harus mengikuti aturan: kulit dalam terisi penuh (kecuali kulit terluar).
+    // Untuk memudahkan, kita bangun array konfigurasi dengan aturan kapasitas maksimum,
+    // lalu sesuaikan agar elektron terluar = valensi.
+    
+    // Karena input adalah jumlah kulit dan valensi, kita bisa membangun konfigurasi
+    // dengan mengisi kulit 1..kulit-1 secara maksimum (2, 8, 18, 32) sesuai aturan Bohr,
+    // dan kulit terakhir diisi valensi.
+    // Namun perlu dicek apakah memungkinkan: total elektron harus sama dengan nomor atom.
+    // Kita batasi agar valensi tidak melebihi kapasitas maksimum kulit terakhir.
+    
+    const kapasitas = [2, 8, 18, 32, 50, 72, 98]; // perkiraan
+    let konfig = [];
+    let totalElektron = 0;
+    
+    // Kulit 1 sampai kulit-1 diisi maksimum
+    for (let i = 0; i < kulit - 1; i++) {
+      let maxE = kapasitas[i] || 2 * (i+1)*(i+1);
+      // Tapi aturan Bohr: kulit M maks 18, N maks 32, dst.
+      // Untuk penyederhanaan, kita pakai 2n^2.
+      let n = i + 1;
+      let max = 2 * n * n;
+      // Tapi aturan khusus: untuk kulit terluar (kulit ke-kulit), tidak selalu penuh.
+      // Di sini kita isi penuh untuk kulit dalam.
+      konfig.push(max);
+      totalElektron += max;
+    }
+    // Kulit terakhir diisi valensi
+    konfig.push(valensi);
+    totalElektron += valensi;
+    
+    // Cek apakah total elektron melebihi kapasitas maksimum kulit terakhir?
+    let nTerakhir = kulit;
+    let maxTerakhir = 2 * nTerakhir * nTerakhir;
+    if (valensi > maxTerakhir) {
+      return null; // tidak valid
+    }
+    
+    // Cek juga apakah kulit dalam melebihi kapasitas? Sudah diisi max, aman.
+    
+    return {
+      konfigurasi: konfig.join(','),
+      nomorAtom: totalElektron,
+      golongan: tentukanGolongan(konfig, valensi, kulit)
+    };
+  }
+
+  // Menentukan golongan berdasarkan konfigurasi (sederhana: golongan utama A)
+  function tentukanGolongan(konfig, valensi, kulit) {
+    // Golongan A berdasarkan elektron valensi
+    // Jika kulit terakhir adalah s atau p, golongan = valensi (untuk 1-2: IA, IIA; 3-8: IIIA-VIIIA)
+    // Tapi karena ini model Bohr sederhana, kita asumsikan golongan A.
+    // Jika valensi 1 -> IA, 2 -> IIA, 3 -> IIIA, 4 -> IVA, 5 -> VA, 6 -> VIA, 7 -> VIIA, 8 -> VIIIA.
+    const mapGolongan = {
+      1: 'IA',
+      2: 'IIA',
+      3: 'IIIA',
+      4: 'IVA',
+      5: 'VA',
+      6: 'VIA',
+      7: 'VIIA',
+      8: 'VIIIA'
+    };
+    return mapGolongan[valensi] || 'Transisi';
+  }
+
+  // Generate soal
+  btnGenerate.addEventListener('click', () => {
+    const kulit = parseInt(inputKulit.value);
+    const valensi = parseInt(inputValensi.value);
+    
+    if (!kulit || !valensi || kulit < 1 || valensi < 1 || valensi > 8) {
+      alert('Masukkan jumlah kulit (1-7) dan elektron valensi (1-8) dengan benar.');
+      return;
+    }
+    
+    const hasil = hitungKonfigurasi(kulit, valensi);
+    if (!hasil) {
+      alert('Konfigurasi tidak valid. Periksa kembali jumlah kulit dan elektron valensi.');
+      return;
+    }
+    
+    soalData = {
+      konfigurasi: hasil.konfigurasi,
+      nomorAtom: hasil.nomorAtom,
+      golongan: hasil.golongan,
+      kulit: kulit,
+      valensi: valensi
+    };
+    
+    // Tampilkan area jawaban
+    areaJawaban.classList.remove('hidden');
+    feedback.classList.add('hidden');
+    // Kosongkan input jawaban
+    jawabKonfig.value = '';
+    jawabNomor.value = '';
+    jawabGolongan.value = '';
+    
+    // Simpan ke localStorage (JSON)
+    simpanDataSoal();
+  });
+
+  // Periksa jawaban
+  btnPeriksa.addEventListener('click', () => {
+    const jawabKonf = jawabKonfig.value.trim();
+    const jawabNom = parseInt(jawabNomor.value);
+    const jawabGol = jawabGolongan.value.trim().toUpperCase();
+    
+    if (!jawabKonf || !jawabNom || !jawabGol) {
+      alert('Harap isi semua jawaban terlebih dahulu.');
+      return;
+    }
+    
+    // Bandingkan dengan soalData
+    const benarKonf = jawabKonf === soalData.konfigurasi;
+    const benarNom = jawabNom === soalData.nomorAtom;
+    const benarGol = jawabGol === soalData.golongan.toUpperCase();
+    
+    let pesan = '';
+    if (benarKonf && benarNom && benarGol) {
+      pesan = '<span class="feedback-benar">✅ Semua jawaban BENAR! Hebat!</span>';
+    } else {
+      pesan = '<span class="feedback-salah">❌ Ada jawaban yang kurang tepat.</span><br><br>';
+      pesan += `Konfigurasi seharusnya: <strong>${soalData.konfigurasi}</strong> ${benarKonf ? '✅' : '❌'}<br>`;
+      pesan += `Nomor atom seharusnya: <strong>${soalData.nomorAtom}</strong> ${benarNom ? '✅' : '❌'}<br>`;
+      pesan += `Golongan seharusnya: <strong>${soalData.golongan}</strong> ${benarGol ? '✅' : '❌'}`;
+    }
+    
+    feedback.innerHTML = pesan;
+    feedback.classList.remove('hidden');
+    
+    // Simpan jawaban ke localStorage
+    simpanJawaban(jawabKonf, jawabNom, jawabGol, benarKonf && benarNom && benarGol);
+  });
+
+  // Reset
+  btnReset.addEventListener('click', () => {
+    areaJawaban.classList.add('hidden');
+    feedback.classList.add('hidden');
+    inputKulit.value = 3;
+    inputValensi.value = 2;
+    // Hapus data soal dari localStorage? Tidak, biarkan sebagai riwayat.
+    // Tapi kita bisa hapus current soal.
+    localStorage.removeItem('soalAktif');
+  });
+
+  // ========== PENYIMPANAN DATA (JSON) ==========
+  function simpanDataSoal() {
+    const data = {
+      soal: soalData,
+      timestamp: new Date().toISOString()
+    };
+    localStorage.setItem('soalAktif', JSON.stringify(data));
+  }
+
+  function simpanJawaban(konf, nom, gol, benar) {
+    let riwayat = JSON.parse(localStorage.getItem('riwayatJawaban') || '[]');
+    riwayat.push({
+      soal: soalData,
+      jawaban: { konfigurasi: konf, nomorAtom: nom, golongan: gol },
+      benar: benar,
+      waktu: new Date().toISOString()
+    });
+    // Batasi 20 riwayat terakhir
+    if (riwayat.length > 20) riwayat = riwayat.slice(-20);
+    localStorage.setItem('riwayatJawaban', JSON.stringify(riwayat));
+  }
+
+  // Muat data soal terakhir jika ada (opsional)
+  function muatSoalTerakhir() {
+    const saved = localStorage.getItem('soalAktif');
+    if (saved) {
+      try {
+        const data = JSON.parse(saved);
+        if (data.soal) {
+          soalData = data.soal;
+          inputKulit.value = soalData.kulit;
+          inputValensi.value = soalData.valensi;
+          // Tapi jangan tampilkan area jawaban otomatis, biarkan user klik generate.
+        }
+      } catch (e) {}
+    }
+  }
+  muatSoalTerakhir();
+
+  // Inisialisasi tampilan
+  setActiveButton(btnMateri);
+</script>
+</body>
+</html>
